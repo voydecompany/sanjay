@@ -3,14 +3,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // ================= SMOOTH SCROLL (LENIS) =================
     // Initialize Lenis for premium smooth scrolling
     const lenis = new Lenis({
-        duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for "premium" feel
+        duration: 0.8, // Reduced from 1.2 for faster, less laggy feel on mobile
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         direction: 'vertical',
         gestureDirection: 'vertical',
         smooth: true,
         mouseMultiplier: 1,
-        smoothTouch: true,
-        touchMultiplier: 2,
+        smoothTouch: true, // Enable smooth scrolling on mobile/touch devices
+        touchMultiplier: 1.5, // Reduced from 2 for more responsive touch
+        infinite: false,
+        syncTouch: true, // Better touch synchronization
+        syncTouchLerp: 0.1, // Smoother touch interpolation
+        touchInertiaMultiplier: 20, // Reduced for less momentum/lag
     });
 
     function raf(time) {
@@ -23,29 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ================= LOADER LOGIC =================
     const loader = document.getElementById('loader');
     const body = document.body;
-    const loadingBar = document.querySelector('.loading-bar');
-    const percentage = document.querySelector('.loader-percentage');
 
-    let startTime = Date.now();
-    const minDisplayTime = 2000; // Minimum 2 seconds display
-
-    // Simulate Progress
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += Math.floor(Math.random() * 3) + 1; // Slower increment: 1-3%
-        if (progress > 100) progress = 100;
-
-        loadingBar.style.width = `${progress}%`;
-        percentage.textContent = `${progress}%`;
-
-        if (progress === 100) {
-            clearInterval(interval);
-            // Ensure minimum display time
-            const elapsed = Date.now() - startTime;
-            const remainingTime = Math.max(0, minDisplayTime - elapsed);
-            setTimeout(hideLoader, remainingTime + 500);
-        }
-    }, 150); // Slower interval
+    // Wait for signature animation to complete (3s animation + 0.5s pause)
+    setTimeout(() => {
+        hideLoader();
+    }, 3500);
 
     function hideLoader() {
         loader.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -85,26 +71,42 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(el);
     });
 
-    // ================= PARALLAX EFFECT (Simple) =================
+    // ================= PARALLAX EFFECT (Optimized for Performance) =================
+    let ticking = false;
+    let lastScrollY = 0;
+
+    // Detect if device is mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    function updateParallax() {
+        const scrolled = lastScrollY;
+
+        // Hero Background Text Parallax (only on desktop for performance)
+        if (!isMobile) {
+            const heroBgText = document.querySelector('.hero-bg-text-container');
+            if (heroBgText) {
+                heroBgText.style.transform = `translate(-50%, calc(-50% + ${scrolled * 0.15}px))`;
+                heroBgText.style.opacity = 1 - (scrolled / 500);
+            }
+
+            // Aerostellar Background Parallax
+            const shape = document.querySelector('.abstract-shape');
+            if (shape) {
+                shape.style.transform = `translateY(${scrolled * 0.15}px) rotate(${scrolled * 0.05}deg)`;
+            }
+        }
+
+        ticking = false;
+    }
+
     window.addEventListener('scroll', () => {
-        const scrolled = window.scrollY;
+        lastScrollY = window.scrollY;
 
-        // Hero Background Text Parallax
-        const heroBgText = document.querySelector('.hero-bg-text-container');
-        if (heroBgText) {
-            // Text moves slower
-            heroBgText.style.transform = `translate(-50%, calc(-50% + ${scrolled * 0.15}px))`;
-            heroBgText.style.opacity = 1 - (scrolled / 500);
+        if (!ticking) {
+            requestAnimationFrame(updateParallax);
+            ticking = true;
         }
-
-        // Hero Image Parallax REMOVED to fix alignment bug and standard scrolling desire
-
-        // Aerostellar Background Parallax
-        const shape = document.querySelector('.abstract-shape');
-        if (shape) {
-            shape.style.transform = `translateY(${scrolled * 0.15}px) rotate(${scrolled * 0.05}deg)`;
-        }
-    });
+    }, { passive: true }); // Passive listener for better scroll performance
 
     // ================= NAVIGATION SCROLL =================
     const navbar = document.getElementById('navbar');
