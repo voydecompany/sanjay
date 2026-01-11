@@ -50,10 +50,16 @@ body {
     color: var(--text-color);
     font-family: var(--font-body);
     overflow-x: hidden;
+    /* Performance optimizations for smooth mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 body.loading {
     overflow: hidden;
+    touch-action: none;
 }
 
 body.loaded {
@@ -143,53 +149,33 @@ body.loaded {
     gap: 20px;
 }
 
-.loader-brand {
-    font-family: var(--font-script);
-    font-size: 5rem;
-    color: var(--accent-color);
-    line-height: 1;
-    margin-bottom: 10px;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeUpBrand 1s var(--ease-out-expo) forwards 0.2s;
+/* SVG Signature Styles */
+.signature-svg {
+    width: 500px;
+    height: 200px;
+    max-width: 90vw;
 }
 
-.loading-bar-container {
-    width: 250px;
-    height: 2px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-    opacity: 0;
-    animation: fadeIn 1s ease forwards 0.5s;
+#signature-path {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: drawSignature 3s cubic-bezier(0.47, 0, 0.745, 0.715) forwards;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.3));
 }
 
-.loading-bar {
-    height: 100%;
-    background-color: var(--accent-color);
-    width: 0%;
-    /* Width controlled by JS */
-    transition: width 0.1s linear;
-}
-
-.loader-percentage {
-    font-family: var(--font-heading);
-    color: #555;
-    font-size: 0.9rem;
-    letter-spacing: 2px;
-    opacity: 0;
-    animation: fadeIn 1s ease forwards 0.5s;
-}
-
-@keyframes fadeUpBrand {
+@keyframes drawSignature {
     to {
-        opacity: 1;
-        transform: translateY(0);
+        stroke-dashoffset: 0;
     }
 }
 
-@keyframes fadeIn {
+/* Fade in animation for the entire SVG */
+.signature-svg {
+    opacity: 0;
+    animation: fadeInSVG 0.5s ease forwards;
+}
+
+@keyframes fadeInSVG {
     to {
         opacity: 1;
     }
